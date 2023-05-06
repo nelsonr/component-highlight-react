@@ -1,38 +1,32 @@
-// This content script will be loaded in every browser page (this can be configured in the manifest file).
-// It's recommended to rename this file to something more meaningful so it's easy to find with the browser devtools.
-// Learn more: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts
+let activeSelectors: Set<string> = new Set();
 
-let currentSelector: string | null = null;
-
-function highlight (selector: string) {
-    const highlightStyles = `
-        ${selector} * {
-            outline: 1px dashed hotpink !important;
-        }
-    `;
-
-    let style = document.head.querySelector(
-        "style[data-type='component-highlight']"
-    );
-
-    if (!style) {
-        style = document.createElement("style");
-        style.setAttribute("data-type", "component-highlight");
-        document.head.appendChild(style);
-    }
-
-    style.textContent = highlightStyles;
-    currentSelector = selector;
+function generateHighlightStyles (selectors: Set<string>) {
+    const CSSSelector = Array
+        .from(selectors)
+        .map((selector) => `${selector} *`)
+        .join(",\r\n");
+    
+    return `${CSSSelector} {
+        outline: 1px dashed hotpink !important;
+    }`;
 }
 
-function clear () {
-    const style = document.head.querySelector("[data-type='component-highlight']");
+function toggleHighlight (selectors: Set<string>) {
+    let styleEl = document.head.querySelector("style[data-type='component-highlight']");
 
-    if (style) {
-        style.remove();
+    if (selectors.size === 0 && styleEl) {
+        return styleEl?.remove();   
     }
 
-    currentSelector = null;
+    if (!styleEl) {
+        styleEl = document.createElement("style");
+        styleEl.setAttribute("data-type", "component-highlight");
+        document.head.appendChild(styleEl);
+    }
+
+    const highlightStyles = generateHighlightStyles(selectors);
+    styleEl.textContent = highlightStyles;
+    activeSelectors = selectors;
 }
 
 function getComponents () {
@@ -63,18 +57,14 @@ function main () {
         if (message.action == "get-list") {
             env.runtime.sendMessage({
                 action: "list",
-                isOSApp: isOutSystemsApp(),
                 list: getComponents(),
-                currentSelector: currentSelector,
+                isOSApp: isOutSystemsApp(),
+                activeSelectors: Array.from(activeSelectors)
             });
         }
 
         if (message.action == "highlight") {
-            highlight(message.selector);
-        }
-
-        if (message.action == "clear") {
-            clear();
+            toggleHighlight(new Set(message.selectors));
         }
     });
 }

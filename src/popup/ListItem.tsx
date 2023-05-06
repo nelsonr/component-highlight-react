@@ -1,23 +1,22 @@
 import { OSComponent } from "../types";
 
 type ListItemProps = OSComponent & {
-    currentSelector: string | null;
-    onClick: (selector: string | null) => unknown;
+    activeSelectors: Set<string>;
+    onSelectorToggle: (selector: string, type: "add" | "remove") => unknown;
 }
 
 function ListItem (props: ListItemProps) {
-    const { name, selector, currentSelector, onClick } = props;
-    const isActive = selector === currentSelector;
+    const { name, selector, activeSelectors, onSelectorToggle } = props;
+    const isActive = activeSelectors.has(selector);
     const className = isActive ? "active" : "";
 
     const handleClick = () => {
         if (isActive) {
-            onClick(null);
+            onSelectorToggle(selector, "remove");
         } else {
-            onClick(selector);
+            onSelectorToggle(selector, "add");
         }
     };
-    
     
     return (
         <li 

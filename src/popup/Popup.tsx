@@ -5,7 +5,7 @@ import List from "./List";
 
 type PopupState = {
     list: OSComponent[];
-    currentSelector: string | null;
+    activeSelectors: Set<string>;
     isOSApp: boolean | null;
     isLoading: boolean;
     filter: string;
@@ -13,7 +13,7 @@ type PopupState = {
 
 const initialState: PopupState = {
     list: [],
-    currentSelector: null,
+    activeSelectors: new Set(),
     isOSApp: null,
     isLoading: true,
     filter: "",
@@ -30,7 +30,7 @@ function Popup () {
                 setState({
                     ...state,
                     list: message.list,
-                    currentSelector: message.currentSelector,
+                    activeSelectors: new Set(message.activeSelectors),
                     isOSApp: message.isOSApp,
                     isLoading: false
                 });
@@ -38,19 +38,21 @@ function Popup () {
         });
     }, []);
 
-    const toggleHighlight = (selector: string | null) => { 
-        if (selector) {
-            env.runtime.sendMessage({
-                action: "highlight",
-                selector: selector 
-            });
+    const toggleHighlight = (selector: string, type: "add" | "remove") => { 
+        if (type === "add") {
+            state.activeSelectors.add(selector);
         } else {
-            env.runtime.sendMessage({ action: "clear" });
+            state.activeSelectors.delete(selector);
         }
-
+            
+        env.runtime.sendMessage({
+            action: "highlight",
+            selectors: Array.from(state.activeSelectors)
+        });
+            
         setState({
             ...state,
-            currentSelector: selector 
+            activeSelectors: state.activeSelectors
         }); 
     };
 
@@ -65,8 +67,8 @@ function Popup () {
             return (
                 <List 
                     list={state.list}
-                    currentSelector={state.currentSelector}
-                    onItemClick={toggleHighlight} 
+                    activeSelectors={state.activeSelectors}
+                    onSelectorToggle={toggleHighlight} 
                 />
             );
         } else {

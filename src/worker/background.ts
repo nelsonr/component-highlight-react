@@ -6,7 +6,7 @@ env.runtime.onMessage.addListener((message) => {
     getCurrentTab().then(
         (tab) => {
             if (tab && tab.id) {
-                if ([ "get-list", "highlight", "clear" ].includes(message.action)) {
+                if ([ "get-list", "highlight" ].includes(message.action)) {
                     env.tabs.sendMessage(tab.id, message);
                 }
             }

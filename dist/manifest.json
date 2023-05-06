@@ -1,6 +1,6 @@
 {
     "name": "Component Highlight",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Highlight OutSystems components in a web app",
     "manifest_version": 3,
     "permissions": [ ],

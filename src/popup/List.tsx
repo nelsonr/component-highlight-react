@@ -4,8 +4,8 @@ import ListItem from "./ListItem";
 
 type ListProps = {
     list: OSComponent[];
-    currentSelector: string | null;
-    onItemClick: (selector: string | null) => unknown;
+    activeSelectors: Set<string>;
+    onSelectorToggle: (selector: string, type: "add" | "remove") => unknown;
 }
 
 type ListState = {
@@ -15,7 +15,7 @@ type ListState = {
 const initialState: ListState = { filter: "" };
 
 function List (props: ListProps) {
-    const { list, currentSelector, onItemClick } = props;
+    const { list, activeSelectors, onSelectorToggle } = props;
     const [ state, setState ] = useState<ListState>(initialState);
     const inputElementRef = useRef<HTMLInputElement>(null);
 
@@ -48,8 +48,8 @@ function List (props: ListProps) {
                         key={item.name}
                         name={item.name.split(".")[1]} 
                         selector={item.selector} 
-                        currentSelector={currentSelector}
-                        onClick={onItemClick}
+                        activeSelectors={activeSelectors}
+                        onSelectorToggle={onSelectorToggle}
                     />
                 );
             
